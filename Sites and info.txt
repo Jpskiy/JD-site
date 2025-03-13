@@ -1,9 +1,9 @@
 Project Goals: 
     Create Custom HTML page 
     Create CSS for HTML page 
-    Create a Flask form (scheduling and class data)
+    Create a Flask form (scheduling and class data) - Joey 
     Create a website calendar (links to a google calendar)
-    Create Flask login and ability to save user data 
+    Create Flask login and ability to save user data - Joey
         Save email chains to each user
 
 
