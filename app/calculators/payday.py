@@ -19,6 +19,8 @@ def money(value: Decimal) -> Decimal:
 
 def resolve_period_end(paycheck_date: date, next_paycheck_date: date | None = None) -> date:
     return next_paycheck_date if next_paycheck_date is not None else paycheck_date + timedelta(days=14)
+def next_paycheck(paycheck_date: date) -> date:
+    return paycheck_date + timedelta(days=14)
 
 
 def count_weekly_occurrences(start: date, end: date, anchor_weekday: int) -> int:
@@ -58,6 +60,8 @@ def due_amount(bill: Bill, start: date, end: date) -> Decimal:
         # TODO: Store bill weekday explicitly for all weekly bills and enforce it at data model validation.
         anchor = bill.weekday_anchor if bill.weekday_anchor is not None else start.weekday()
         occurrences = count_weekly_occurrences(start, end, anchor)
+        # TODO: Store bill weekday explicitly in DB and use it here.
+        occurrences = count_weekly_occurrences(start, end, start.weekday())
         return money(bill.amount * Decimal(occurrences))
     if bill.cadence == "biweekly":
         return money(bill.amount)
@@ -82,6 +86,10 @@ def compute_plan(
     min_cash_buffer = money(min_cash_buffer)
     starting_liquid_cash = money(starting_liquid_cash)
     primary_surplus_target = primary_surplus_target if primary_surplus_target in VALID_SURPLUS_TARGETS else "invest"
+def compute_plan(paycheck_amount: Decimal, paycheck_date: date, bills: list[Bill], debts: list[Debt], buffer_target: Decimal) -> dict[str, object]:
+    paycheck_amount = money(paycheck_amount)
+    buffer_target = money(buffer_target)
+    period_end = next_paycheck(paycheck_date)
 
     remaining = paycheck_amount
     bill_details: list[dict[str, object]] = []
@@ -137,6 +145,8 @@ def compute_plan(
         allocations.append({"bucket": target_bucket, "amount": target_alloc})
         extra_debt = money(remaining - target_alloc)
     allocations.append({"bucket": "ExtraDebt", "amount": money(extra_debt)})
+        {"bucket": "ExtraDebt", "amount": remaining},
+    ]
 
     alloc_sum = money(sum(a["amount"] for a in allocations))
     checks = {
@@ -171,6 +181,9 @@ def compute_plan(
             "starting_liquid_cash": starting_liquid_cash,
             "projected_end_cash": projected_end_cash,
             "safe_to_invest": safe_to_invest,
+        "details": {
+            "bills_due_total": money(total_bills_due),
+            "debt_min_total": debt_min_total,
             "bills_funded": bill_details,
             "unfunded_items": unfunded,
         },

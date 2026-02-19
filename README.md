@@ -117,9 +117,23 @@ curl http://127.0.0.1:8000/plans/<plan_id>
 ## CLI Demo
 ```bash
 python -m app.cli demo-payday --amount 2390.43 --date 2026-01-05 --next-paycheck-date 2026-01-12
+python -m app.cli demo-payday --amount 2390.43
 ```
 
 ## Tests
 ```bash
 pytest -q
 ```
+
+## Deterministic Allocation Rules
+1. Fund bills due before next paycheck date (`paycheck_date + 14 days`).
+2. Fund spending buffer (default from preferences, default 600).
+3. Fund debt minimum payments.
+4. Allocate remainder to `ExtraDebt`.
+
+Validation checks returned:
+- `allocations_sum_ok`
+- `bills_covered_ok`
+- `buffer_met_ok`
+
+When funds are insufficient, response still returns a plan plus `details.unfunded_items` guidance.

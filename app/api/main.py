@@ -16,6 +16,7 @@ from app.db.seed import seed_demo_data
 from app.db.session import SessionLocal
 
 app = FastAPI(title="Finance Co-Pilot", version="1.1.0")
+app = FastAPI(title="Finance Co-Pilot", version="1.0.0")
 
 
 def get_db() -> Session:

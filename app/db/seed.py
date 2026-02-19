@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.models import Account, Bill, Debt, IncomeSchedule, Preference
+from app.db.models import Account, Bill, Debt, Preference
 
 
 def seed_demo_data(session: Session) -> None:
@@ -23,6 +24,7 @@ def seed_demo_data(session: Session) -> None:
         Bill(name="Internet", amount=Decimal("85.00"), cadence="monthly", due_day=10, autopay=True, pay_from_account_id=checking.id),
         Bill(name="Phone", amount=Decimal("65.00"), cadence="monthly", due_day=20, autopay=True, pay_from_account_id=checking.id),
         Bill(name="Groceries", amount=Decimal("140.00"), cadence="weekly", due_day=None, autopay=False, pay_from_account_id=checking.id, weekday_anchor=5),
+        Bill(name="Groceries", amount=Decimal("140.00"), cadence="weekly", due_day=None, autopay=False, pay_from_account_id=checking.id),
     ]
     debts = [
         Debt(name="Student Loan", balance=Decimal("8200.00"), apr=Decimal("4.2"), min_payment=Decimal("130.00"), pay_from_account_id=checking.id),
@@ -43,4 +45,7 @@ def seed_demo_data(session: Session) -> None:
     )
 
     session.add_all(bills + debts + [pref, schedule])
+    pref = Preference(buffer_amount_per_paycheck=Decimal("600.00"), currency="CAD", notes="demo profile")
+
+    session.add_all(bills + debts + [pref])
     session.commit()

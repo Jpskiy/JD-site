@@ -21,6 +21,8 @@ def test_plan_persistence_and_history_endpoints() -> None:
             'paycheck_date': '2026-01-05',
             'next_paycheck_date': '2026-01-12',
             'use_income_schedule': True,
+            'paycheck_amount': '2390.43',
+            'paycheck_date': '2026-01-05',
         },
     )
     assert create.status_code == 200

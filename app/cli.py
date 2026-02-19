@@ -23,6 +23,11 @@ def run_demo(amount: Decimal, paycheck_date: date, next_paycheck_date: date | No
             paycheck_date,
             next_paycheck_date=next_paycheck_date,
         )
+def run_demo(amount: Decimal, paycheck_date: date) -> None:
+    init_db()
+    with SessionLocal() as session:
+        seed_demo_data(session)
+        plan = generate_payday_plan(session, amount, paycheck_date)
     print(json.dumps(plan, indent=2))
 
 
@@ -40,6 +45,7 @@ def main() -> None:
     if args.command == "demo-payday":
         next_pay = date.fromisoformat(args.next_paycheck_date) if args.next_paycheck_date else None
         run_demo(args.amount, date.fromisoformat(args.date), next_paycheck_date=next_pay)
+        run_demo(args.amount, date.fromisoformat(args.date))
 
 
 if __name__ == "__main__":
