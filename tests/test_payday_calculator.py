@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
-from app.calculators.payday import compute_plan
+from app.calculators.payday import compute_plan, count_weekly_occurrences
 from app.domain.models import Bill, Debt
 
 
@@ -18,6 +18,14 @@ def debts() -> list[Debt]:
         Debt(id=1, name="Student Loan", balance=Decimal("8000.00"), apr=Decimal("5.00"), min_payment=Decimal("120.00")),
         Debt(id=2, name="Credit Card", balance=Decimal("1800.00"), apr=Decimal("21.00"), min_payment=Decimal("65.00")),
     ]
+
+
+def test_weekly_occurrences_count_from_monday_anchor() -> None:
+    assert count_weekly_occurrences(date(2026, 1, 5), date(2026, 1, 19), 0) == 2
+
+
+def test_weekly_occurrences_count_from_wednesday_anchor() -> None:
+    assert count_weekly_occurrences(date(2026, 1, 7), date(2026, 1, 21), 2) == 2
 
 
 def test_allocations_sum_to_paycheck() -> None:

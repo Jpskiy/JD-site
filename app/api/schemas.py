@@ -31,7 +31,29 @@ class PaydayPlanResponse(BaseModel):
     checks: Checks
     summary: str
     details: dict[str, object]
+    inputs: dict[str, object]
 
 
 class GenericStatus(BaseModel):
     status: str
+
+
+class PlanRunListItem(BaseModel):
+    plan_id: str
+    created_at: str
+    paycheck_date: str | None
+    paycheck_amount: str | None
+    checks_summary: str | None
+
+
+class PlanRunListResponse(BaseModel):
+    plans: list[PlanRunListItem]
+
+
+class PlanRunDetailResponse(BaseModel):
+    plan_id: str
+    created_at: str
+    paycheck_date: str | None
+    paycheck_amount: str | None
+    checks_summary: str | None
+    plan: dict[str, object] | None

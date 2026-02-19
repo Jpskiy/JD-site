@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, String, Text, Boolean
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.sql import func
 
@@ -17,7 +17,7 @@ class Account(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     type: Mapped[str] = mapped_column(String(30), nullable=False)
-    currency: Mapped[str] = mapped_column(String(8), nullable=False, default="USD")
+    currency: Mapped[str] = mapped_column(String(8), nullable=False, default="CAD")
     balance: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False, default=0)
 
 
@@ -49,7 +49,7 @@ class Preference(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     buffer_amount_per_paycheck: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False, default=600)
-    currency: Mapped[str] = mapped_column(String(8), nullable=False, default="USD")
+    currency: Mapped[str] = mapped_column(String(8), nullable=False, default="CAD")
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
@@ -58,3 +58,7 @@ class PlanRun(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    paycheck_date: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    paycheck_amount: Mapped[float | None] = mapped_column(Numeric(12, 2), nullable=True)
+    checks_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    plan_json: Mapped[str | None] = mapped_column(Text, nullable=True)

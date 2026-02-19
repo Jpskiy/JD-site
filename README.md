@@ -4,11 +4,14 @@ Finance Co-Pilot v1 is a deterministic payday planning agent that runs fully loc
 
 ## Features
 - SQLite database schema + init script
-- Demo seed profile (accounts, bills, debts, preferences)
+- Demo seed profile (accounts, bills, debts, preferences) defaulted to CAD
 - Deterministic payday planner (no LLM math)
+- Plan output persisted for history/retrieval
 - FastAPI endpoints:
   - `POST /seed/demo`
   - `POST /plan/payday`
+  - `GET /plans`
+  - `GET /plans/{plan_id}`
 - CLI demo command:
   - `python -m app.cli demo-payday --amount 2390.43`
 - Unit/API tests with pytest
@@ -53,7 +56,17 @@ curl -X POST http://127.0.0.1:8000/plan/payday \
   }'
 ```
 
-## Example Response
+## List Recent Plans
+```bash
+curl http://127.0.0.1:8000/plans
+```
+
+## Get One Stored Plan
+```bash
+curl http://127.0.0.1:8000/plans/<plan_id>
+```
+
+## Example Response (POST /plan/payday)
 ```json
 {
   "plan_id": "uuid",
@@ -76,6 +89,11 @@ curl -X POST http://127.0.0.1:8000/plan/payday \
     "debt_min_total": "200.00",
     "bills_funded": [],
     "unfunded_items": []
+  },
+  "inputs": {
+    "paycheck_amount": "2390.43",
+    "paycheck_date": "2026-01-05",
+    "buffer_amount": "600.00"
   }
 }
 ```

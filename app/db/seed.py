@@ -12,9 +12,9 @@ def seed_demo_data(session: Session) -> None:
     if session.execute(select(Account.id)).first():
         return
 
-    checking = Account(name="Main Checking", type="checking", currency="USD", balance=Decimal("1200.00"))
-    savings = Account(name="Emergency Savings", type="savings", currency="USD", balance=Decimal("2500.00"))
-    credit = Account(name="Rewards Card", type="credit", currency="USD", balance=Decimal("-430.12"))
+    checking = Account(name="Main Checking", type="checking", currency="CAD", balance=Decimal("1200.00"))
+    savings = Account(name="Emergency Savings", type="savings", currency="CAD", balance=Decimal("2500.00"))
+    credit = Account(name="Rewards Card", type="credit", currency="CAD", balance=Decimal("-430.12"))
     session.add_all([checking, savings, credit])
     session.flush()
 
@@ -28,7 +28,7 @@ def seed_demo_data(session: Session) -> None:
         Debt(name="Student Loan", balance=Decimal("8200.00"), apr=Decimal("4.2"), min_payment=Decimal("130.00"), pay_from_account_id=checking.id),
         Debt(name="Credit Card", balance=Decimal("1800.00"), apr=Decimal("21.99"), min_payment=Decimal("70.00"), pay_from_account_id=checking.id),
     ]
-    pref = Preference(buffer_amount_per_paycheck=Decimal("600.00"), currency="USD", notes="demo profile")
+    pref = Preference(buffer_amount_per_paycheck=Decimal("600.00"), currency="CAD", notes="demo profile")
 
     session.add_all(bills + debts + [pref])
     session.commit()

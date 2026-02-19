@@ -18,6 +18,18 @@ def next_paycheck(paycheck_date: date) -> date:
     return paycheck_date + timedelta(days=14)
 
 
+def count_weekly_occurrences(start: date, end: date, anchor_weekday: int) -> int:
+    """Count weekly occurrences in [start, end) for a given weekday anchor (0=Mon)."""
+    if end <= start:
+        return 0
+    days_until_anchor = (anchor_weekday - start.weekday()) % 7
+    first_occurrence = start + timedelta(days=days_until_anchor)
+    if first_occurrence >= end:
+        return 0
+    span_days = (end - first_occurrence).days
+    return 1 + (span_days - 1) // 7
+
+
 def is_monthly_due(due_day: int | None, start: date, end: date) -> bool:
     if due_day is None:
         return False
@@ -40,7 +52,9 @@ def is_monthly_due(due_day: int | None, start: date, end: date) -> bool:
 
 def due_amount(bill: Bill, start: date, end: date) -> Decimal:
     if bill.cadence == "weekly":
-        return money(bill.amount * Decimal("2"))
+        # TODO: Store bill weekday explicitly in DB and use it here.
+        occurrences = count_weekly_occurrences(start, end, start.weekday())
+        return money(bill.amount * Decimal(occurrences))
     if bill.cadence == "biweekly":
         return money(bill.amount)
     if bill.cadence == "monthly" and is_monthly_due(bill.due_day, start, end):

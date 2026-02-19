@@ -8,21 +8,31 @@ from fastapi.testclient import TestClient
 from app.api.main import app
 
 
-def test_seed_and_plan_endpoint_round_trip() -> None:
+def test_plan_persistence_and_history_endpoints() -> None:
     client = TestClient(app)
 
     seed = client.post('/seed/demo')
     assert seed.status_code == 200
 
-    resp = client.post(
+    create = client.post(
         '/plan/payday',
         json={
             'paycheck_amount': '2390.43',
             'paycheck_date': '2026-01-05',
         },
     )
-    assert resp.status_code == 200
-    body = resp.json()
-    assert 'plan_id' in body
-    assert len(body['allocations']) == 4
-    assert body['checks']['allocations_sum_ok'] is True
+    assert create.status_code == 200
+    created_body = create.json()
+    plan_id = created_body['plan_id']
+
+    history = client.get('/plans')
+    assert history.status_code == 200
+    plans = history.json()['plans']
+    assert any(item['plan_id'] == plan_id for item in plans)
+
+    detail = client.get(f'/plans/{plan_id}')
+    assert detail.status_code == 200
+    detail_body = detail.json()
+    assert detail_body['plan_id'] == plan_id
+    assert detail_body['plan']['checks']['allocations_sum_ok'] is True
+    assert detail_body['plan']['inputs']['paycheck_amount'] == '2390.43'
