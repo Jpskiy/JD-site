@@ -64,9 +64,6 @@ def generate_payday_plan(
     buffer_amount = d(pref.buffer_amount_per_paycheck) if pref else Decimal("600.00")
     min_cash_buffer = d(pref.min_cash_buffer) if pref else Decimal("2000.00")
     primary_surplus_target = pref.primary_surplus_target if pref else "invest"
-def generate_payday_plan(session: Session, paycheck_amount: Decimal, paycheck_date: date, override_buffer_amount: Decimal | None = None) -> dict[str, object]:
-    pref = session.scalar(select(Preference).limit(1))
-    buffer_amount = d(pref.buffer_amount_per_paycheck) if pref else Decimal("600.00")
     if override_buffer_amount is not None:
         buffer_amount = d(override_buffer_amount)
 
@@ -80,7 +77,6 @@ def generate_payday_plan(session: Session, paycheck_amount: Decimal, paycheck_da
             autopay=b.autopay,
             weekday_anchor=b.weekday_anchor,
         )
-        Bill(id=b.id, name=b.name, amount=d(b.amount), cadence=b.cadence, due_day=b.due_day, autopay=b.autopay)
         for b in session.scalars(select(BillModel)).all()
     ]
     debts = [
@@ -102,7 +98,6 @@ def generate_payday_plan(session: Session, paycheck_amount: Decimal, paycheck_da
         primary_surplus_target=primary_surplus_target,
         starting_liquid_cash=starting_liquid_cash,
     )
-    calc = compute_plan(paycheck_amount=paycheck_amount, paycheck_date=paycheck_date, bills=bills, debts=debts, buffer_target=buffer_amount)
 
     checks = calc["checks"]
     summary = (
@@ -145,7 +140,6 @@ def generate_payday_plan(session: Session, paycheck_amount: Decimal, paycheck_da
             "buffer_amount": str(buffer_amount),
             "min_cash_buffer": str(min_cash_buffer),
             "primary_surplus_target": primary_surplus_target,
-            "buffer_amount": str(buffer_amount),
         },
     }
 
