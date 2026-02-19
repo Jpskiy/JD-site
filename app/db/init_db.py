@@ -23,6 +23,10 @@ def init_db() -> None:
     _add_column_if_missing("plan_runs", "checks_summary", "checks_summary TEXT")
     _add_column_if_missing("plan_runs", "plan_json", "plan_json TEXT")
 
+    _add_column_if_missing("preferences", "min_cash_buffer", "min_cash_buffer NUMERIC(12,2) DEFAULT 2000.00")
+    _add_column_if_missing("preferences", "primary_surplus_target", "primary_surplus_target VARCHAR(30) DEFAULT 'invest'")
+    _add_column_if_missing("bills", "weekday_anchor", "weekday_anchor INTEGER")
+
 
 if __name__ == "__main__":
     init_db()

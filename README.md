@@ -4,8 +4,9 @@ Finance Co-Pilot v1 is a deterministic payday planning agent that runs fully loc
 
 ## Features
 - SQLite database schema + init script
-- Demo seed profile (accounts, bills, debts, preferences) defaulted to CAD
+- Demo seed profile (accounts, bills, debts, preferences, income schedule) defaulted to CAD
 - Deterministic payday planner (no LLM math)
+- Balance-aware planning (`starting_liquid_cash`, `projected_end_cash`, `safe_to_invest`)
 - Plan output persisted for history/retrieval
 - FastAPI endpoints:
   - `POST /seed/demo`
@@ -52,6 +53,8 @@ curl -X POST http://127.0.0.1:8000/plan/payday \
   -d '{
     "paycheck_amount": 2390.43,
     "paycheck_date": "2026-01-05",
+    "next_paycheck_date": "2026-01-12",
+    "use_income_schedule": true,
     "override_buffer_amount": 600
   }'
 ```
@@ -71,35 +74,49 @@ curl http://127.0.0.1:8000/plans/<plan_id>
 {
   "plan_id": "uuid",
   "allocations": [
-    {"bucket": "Bills", "amount": 365.00},
+    {"bucket": "Bills", "amount": 180.00},
     {"bucket": "Spending", "amount": 600.00},
     {"bucket": "DebtMinimum", "amount": 200.00},
-    {"bucket": "ExtraDebt", "amount": 1225.43}
+    {"bucket": "Invest", "amount": 410.00},
+    {"bucket": "ExtraDebt", "amount": 1000.43}
   ],
   "checks": {
     "allocations_sum_ok": true,
     "bills_covered_ok": true,
-    "buffer_met_ok": true
+    "buffer_met_ok": true,
+    "min_cash_buffer_met_ok": true
   },
   "summary": "Plan is fully funded: all due bills, buffer, and debt minimums are covered.",
+  "safe_to_invest": "410.00",
+  "projected_end_cash": "2410.00",
+  "starting_liquid_cash": "3700.00",
+  "primary_surplus_target": "invest",
   "details": {
     "period_start": "2026-01-05",
-    "period_end": "2026-01-19",
-    "bills_due_total": "365.00",
+    "period_end": "2026-01-12",
+    "bills_due_total": "180.00",
     "debt_min_total": "200.00",
+    "min_cash_buffer": "2000.00",
+    "starting_liquid_cash": "3700.00",
+    "projected_end_cash": "2410.00",
+    "safe_to_invest": "410.00",
     "bills_funded": [],
     "unfunded_items": []
   },
   "inputs": {
     "paycheck_amount": "2390.43",
     "paycheck_date": "2026-01-05",
-    "buffer_amount": "600.00"
+    "period_end": "2026-01-12",
+    "buffer_amount": "600.00",
+    "min_cash_buffer": "2000.00",
+    "primary_surplus_target": "invest"
   }
 }
 ```
 
 ## CLI Demo
 ```bash
+python -m app.cli demo-payday --amount 2390.43 --date 2026-01-05 --next-paycheck-date 2026-01-12
 python -m app.cli demo-payday --amount 2390.43
 ```
 

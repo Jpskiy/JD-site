@@ -14,6 +14,7 @@ class Bill:
     cadence: str
     due_day: int | None
     autopay: bool
+    weekday_anchor: int | None = None
 
 
 @dataclass(frozen=True)

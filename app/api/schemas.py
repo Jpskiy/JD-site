@@ -12,6 +12,8 @@ class PaydayPlanRequest(BaseModel):
     paycheck_amount: Decimal = Field(..., gt=0)
     paycheck_date: date
     override_buffer_amount: Decimal | None = Field(default=None, ge=0)
+    next_paycheck_date: date | None = None
+    use_income_schedule: bool = True
 
 
 class Allocation(BaseModel):
@@ -23,6 +25,7 @@ class Checks(BaseModel):
     allocations_sum_ok: bool
     bills_covered_ok: bool
     buffer_met_ok: bool
+    min_cash_buffer_met_ok: bool
 
 
 class PaydayPlanResponse(BaseModel):
@@ -30,6 +33,10 @@ class PaydayPlanResponse(BaseModel):
     allocations: list[Allocation]
     checks: Checks
     summary: str
+    safe_to_invest: str
+    projected_end_cash: str
+    starting_liquid_cash: str
+    primary_surplus_target: str
     details: dict[str, object]
     inputs: dict[str, object]
 

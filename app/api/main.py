@@ -15,6 +15,7 @@ from app.db.init_db import init_db
 from app.db.seed import seed_demo_data
 from app.db.session import SessionLocal
 
+app = FastAPI(title="Finance Co-Pilot", version="1.1.0")
 app = FastAPI(title="Finance Co-Pilot", version="1.0.0")
 
 
@@ -44,6 +45,8 @@ def payday_plan(payload: PaydayPlanRequest, db: Session = Depends(get_db)) -> Pa
         paycheck_amount=payload.paycheck_amount,
         paycheck_date=payload.paycheck_date,
         override_buffer_amount=payload.override_buffer_amount,
+        next_paycheck_date=payload.next_paycheck_date,
+        use_income_schedule=payload.use_income_schedule,
     )
     return PaydayPlanResponse.model_validate(result)
 

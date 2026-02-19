@@ -10,10 +10,15 @@ from app.domain.models import Bill, Debt
 CENT = Decimal("0.01")
 
 
+VALID_SURPLUS_TARGETS = {"invest", "extra_debt", "emergency_fund"}
+
+
 def money(value: Decimal) -> Decimal:
     return value.quantize(CENT, rounding=ROUND_HALF_UP)
 
 
+def resolve_period_end(paycheck_date: date, next_paycheck_date: date | None = None) -> date:
+    return next_paycheck_date if next_paycheck_date is not None else paycheck_date + timedelta(days=14)
 def next_paycheck(paycheck_date: date) -> date:
     return paycheck_date + timedelta(days=14)
 
@@ -52,6 +57,9 @@ def is_monthly_due(due_day: int | None, start: date, end: date) -> bool:
 
 def due_amount(bill: Bill, start: date, end: date) -> Decimal:
     if bill.cadence == "weekly":
+        # TODO: Store bill weekday explicitly for all weekly bills and enforce it at data model validation.
+        anchor = bill.weekday_anchor if bill.weekday_anchor is not None else start.weekday()
+        occurrences = count_weekly_occurrences(start, end, anchor)
         # TODO: Store bill weekday explicitly in DB and use it here.
         occurrences = count_weekly_occurrences(start, end, start.weekday())
         return money(bill.amount * Decimal(occurrences))
@@ -62,6 +70,22 @@ def due_amount(bill: Bill, start: date, end: date) -> Decimal:
     return Decimal("0.00")
 
 
+def compute_plan(
+    paycheck_amount: Decimal,
+    paycheck_date: date,
+    period_end: date,
+    bills: list[Bill],
+    debts: list[Debt],
+    buffer_target: Decimal,
+    min_cash_buffer: Decimal,
+    primary_surplus_target: str,
+    starting_liquid_cash: Decimal,
+) -> dict[str, object]:
+    paycheck_amount = money(paycheck_amount)
+    buffer_target = money(buffer_target)
+    min_cash_buffer = money(min_cash_buffer)
+    starting_liquid_cash = money(starting_liquid_cash)
+    primary_surplus_target = primary_surplus_target if primary_surplus_target in VALID_SURPLUS_TARGETS else "invest"
 def compute_plan(paycheck_amount: Decimal, paycheck_date: date, bills: list[Bill], debts: list[Debt], buffer_target: Decimal) -> dict[str, object]:
     paycheck_amount = money(paycheck_amount)
     buffer_target = money(buffer_target)
@@ -99,10 +123,28 @@ def compute_plan(paycheck_amount: Decimal, paycheck_date: date, bills: list[Bill
     debt_min_allocated = money(min(remaining, debt_min_total))
     remaining = money(remaining - debt_min_allocated)
 
+    projected_end_cash = money(starting_liquid_cash + paycheck_amount - money(total_bills_due) - buffer_target - debt_min_total)
+    safe_to_invest = money(max(Decimal("0.00"), projected_end_cash - min_cash_buffer))
+
+    target_alloc = Decimal("0.00")
+    target_bucket = None
+    if primary_surplus_target == "invest":
+        target_bucket = "Invest"
+        target_alloc = money(min(remaining, safe_to_invest))
+    elif primary_surplus_target == "emergency_fund":
+        target_bucket = "EmergencyFundTopUp"
+        target_alloc = money(min(remaining, safe_to_invest))
+
+    extra_debt = remaining
     allocations = [
         {"bucket": "Bills", "amount": money(funded_bills)},
         {"bucket": "Spending", "amount": buffer_allocated},
         {"bucket": "DebtMinimum", "amount": debt_min_allocated},
+    ]
+    if target_bucket:
+        allocations.append({"bucket": target_bucket, "amount": target_alloc})
+        extra_debt = money(remaining - target_alloc)
+    allocations.append({"bucket": "ExtraDebt", "amount": money(extra_debt)})
         {"bucket": "ExtraDebt", "amount": remaining},
     ]
 
@@ -111,6 +153,7 @@ def compute_plan(paycheck_amount: Decimal, paycheck_date: date, bills: list[Bill
         "allocations_sum_ok": abs(alloc_sum - paycheck_amount) <= CENT,
         "bills_covered_ok": money(funded_bills) + CENT >= money(total_bills_due),
         "buffer_met_ok": buffer_allocated + CENT >= buffer_target,
+        "min_cash_buffer_met_ok": projected_end_cash + CENT >= min_cash_buffer,
     }
 
     unfunded = []
@@ -127,6 +170,17 @@ def compute_plan(paycheck_amount: Decimal, paycheck_date: date, bills: list[Bill
         "period_end": period_end,
         "allocations": allocations,
         "checks": checks,
+        "safe_to_invest": safe_to_invest,
+        "starting_liquid_cash": starting_liquid_cash,
+        "projected_end_cash": projected_end_cash,
+        "primary_surplus_target": primary_surplus_target,
+        "details": {
+            "bills_due_total": money(total_bills_due),
+            "debt_min_total": debt_min_total,
+            "min_cash_buffer": min_cash_buffer,
+            "starting_liquid_cash": starting_liquid_cash,
+            "projected_end_cash": projected_end_cash,
+            "safe_to_invest": safe_to_invest,
         "details": {
             "bills_due_total": money(total_bills_due),
             "debt_min_total": debt_min_total,

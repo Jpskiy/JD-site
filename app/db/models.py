@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, String, Text, Boolean
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.sql import func
@@ -31,6 +32,7 @@ class Bill(Base):
     due_day: Mapped[int | None] = mapped_column(Integer, nullable=True)
     autopay: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     pay_from_account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), nullable=False)
+    weekday_anchor: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
 
 class Debt(Base):
@@ -49,8 +51,20 @@ class Preference(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     buffer_amount_per_paycheck: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False, default=600)
+    min_cash_buffer: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False, default=2000)
+    primary_surplus_target: Mapped[str] = mapped_column(String(30), nullable=False, default="invest")
     currency: Mapped[str] = mapped_column(String(8), nullable=False, default="CAD")
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class IncomeSchedule(Base):
+    __tablename__ = "income_schedules"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(80), nullable=False)
+    frequency: Mapped[str] = mapped_column(String(20), nullable=False, default="biweekly")
+    next_pay_date: Mapped[str] = mapped_column(String(10), nullable=False)
+    typical_net_amount: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
 
 
 class PlanRun(Base):

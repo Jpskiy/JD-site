@@ -17,6 +17,10 @@ def test_plan_persistence_and_history_endpoints() -> None:
     create = client.post(
         '/plan/payday',
         json={
+            'paycheck_amount': 2390.43,
+            'paycheck_date': '2026-01-05',
+            'next_paycheck_date': '2026-01-12',
+            'use_income_schedule': True,
             'paycheck_amount': '2390.43',
             'paycheck_date': '2026-01-05',
         },
@@ -24,6 +28,12 @@ def test_plan_persistence_and_history_endpoints() -> None:
     assert create.status_code == 200
     created_body = create.json()
     plan_id = created_body['plan_id']
+
+    assert 'safe_to_invest' in created_body
+    assert 'projected_end_cash' in created_body
+    assert 'starting_liquid_cash' in created_body
+    assert 'primary_surplus_target' in created_body
+    assert created_body['details']['period_end'] == '2026-01-12'
 
     history = client.get('/plans')
     assert history.status_code == 200
