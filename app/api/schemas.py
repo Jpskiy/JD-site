@@ -1,4 +1,4 @@
-"""Pydantic request/response schemas for payday planning endpoints."""
+"""Pydantic API contracts."""
 
 from __future__ import annotations
 
@@ -14,12 +14,12 @@ class PaydayPlanRequest(BaseModel):
     override_buffer_amount: Decimal | None = Field(default=None, ge=0)
 
 
-class AllocationItem(BaseModel):
+class Allocation(BaseModel):
     bucket: str
     amount: Decimal
 
 
-class PlanChecks(BaseModel):
+class Checks(BaseModel):
     allocations_sum_ok: bool
     bills_covered_ok: bool
     buffer_met_ok: bool
@@ -27,11 +27,11 @@ class PlanChecks(BaseModel):
 
 class PaydayPlanResponse(BaseModel):
     plan_id: str
-    allocations: list[AllocationItem]
-    checks: PlanChecks
+    allocations: list[Allocation]
+    checks: Checks
     summary: str
     details: dict[str, object]
 
 
-class SeedResponse(BaseModel):
+class GenericStatus(BaseModel):
     status: str

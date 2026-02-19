@@ -1,4 +1,4 @@
-"""SQLAlchemy table definitions for Finance Co-Pilot v1."""
+"""SQLAlchemy models for local-first finance app."""
 
 from __future__ import annotations
 
@@ -15,8 +15,8 @@ class Account(Base):
     __tablename__ = "accounts"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
-    type: Mapped[str] = mapped_column(String(20), nullable=False)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    type: Mapped[str] = mapped_column(String(30), nullable=False)
     currency: Mapped[str] = mapped_column(String(8), nullable=False, default="USD")
     balance: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False, default=0)
 
@@ -25,7 +25,7 @@ class Bill(Base):
     __tablename__ = "bills"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
     amount: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
     cadence: Mapped[str] = mapped_column(String(20), nullable=False)
     due_day: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -37,14 +37,14 @@ class Debt(Base):
     __tablename__ = "debts"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
     balance: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
-    apr: Mapped[float] = mapped_column(Numeric(5, 2), nullable=False)
+    apr: Mapped[float] = mapped_column(Numeric(6, 3), nullable=False)
     min_payment: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
     pay_from_account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), nullable=False)
 
 
-class Preferences(Base):
+class Preference(Base):
     __tablename__ = "preferences"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

@@ -1,1 +1,1 @@
-"""Finance Co-Pilot application package."""
+"""Finance Co-Pilot package."""
